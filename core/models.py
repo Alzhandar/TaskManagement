@@ -1,13 +1,20 @@
 from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 
-class User(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
+
+
+class User(AbstractUser): 
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('employee', 'Employee'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employee')
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
-
+        return f"{self.username} ({self.role})"
+    
 class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -35,7 +42,11 @@ class Task(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     priority = models.ForeignKey(Priority, on_delete=models.SET_NULL, null=True)
-    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
     due_date = models.DateField()
 
     def __str__(self):
